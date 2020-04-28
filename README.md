@@ -16,6 +16,10 @@ So, choose **one** of the user-script managers below and install it:
 
 Then, just click to install any of these user-scripts:
 
+### [🎮 ProtonDB Integration for Steam](https://raw.githubusercontent.com/guihkx/user-scripts/master/scripts/protondb-integration-for-steam.user.js)
+
+**Description:** Adds game ratings on [ProtonDB](https://www.protondb.com/) to the [Steam Store](https://store.steampowered.com/).
+
 ### [🖋️ ProtonMail Signature Remover](https://raw.githubusercontent.com/guihkx/user-scripts/master/scripts/protonmail-signature-remover.user.js)
 
 **Description:** Automatically removes email signature for free users of ProtonMail. ("`Sent with ProtonMail Secure Email`")
