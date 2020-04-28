@@ -1,4 +1,4 @@
-# 🎲 Random User-Scripts 🎲
+<h1 align="center">🎲 Random User-Scripts 🎲</h1>
 
 ## Description
 
