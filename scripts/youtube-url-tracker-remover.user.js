@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name 🕵️ YouTube URL Tracker Remover
+// @name YouTube URL Tracker Remover
 // @description Fixes user-tracking links in the description of YouTube videos
 // @version 1.0.0
 // @author guihkx

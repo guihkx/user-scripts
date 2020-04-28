@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name 🖋️ ProtonMail Signature Remover
+// @name ProtonMail Signature Remover
 // @description Automatically removes email signature for free users of ProtonMail
 // @version 1.0.0
 // @author guihkx
