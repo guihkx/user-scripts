@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name ProtonDB Integration for Steam
-// @description Adds game ratings on ProtonDB to the Steam Store
+// @description Adds game ratings from ProtonDB to the Steam Store
 // @version 1.0.0
 // @author guihkx
 // @match https://store.steampowered.com/app/*
