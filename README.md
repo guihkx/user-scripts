@@ -31,3 +31,7 @@ Then, just click to install any of these user-scripts:
 ### [🕵️ YouTube URL Tracker Remover](https://raw.githubusercontent.com/guihkx/user-scripts/master/scripts/youtube-url-tracker-remover.user.js)
 
 **Description:** Fixes user-tracking links in the description of YouTube videos (`youtube.com/redirect?q=<real link>`).
+
+### [🕶️ WhatsApp Web Native Dark Theme](https://raw.githubusercontent.com/guihkx/user-scripts/master/scripts/whatsapp-web-native-dark-theme.user.js)
+
+**Description:** Automatically enables the native dark theme of WhatsApp Web. (`P.S.: This script is temporary, as WhatsApp will soon add this functionality themselves.`)
