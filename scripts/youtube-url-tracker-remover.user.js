@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name YouTube URL Tracker Remover
 // @description Fixes user-tracking links in the description of YouTube videos
-// @version 1.0.0
+// @version 1.1.0
 // @author guihkx
 // @match https://*.youtube.com/*
 // @license MIT; https://opensource.org/licenses/MIT
@@ -18,6 +18,9 @@
 /**
  * Changelog:
  *
+ * @version 1.1.0:
+ * - Remove support for legacy YouTube (Polymer)
+ *
  * @version 1.0.0:
  * - First release
  */
@@ -25,27 +28,8 @@
 ;(() => {
   'use strict'
 
-  const legacyDescSelector = 'p#eow-description'
-  const legacyDescNode = document.querySelector(legacyDescSelector)
-
-  let eventName
-  let isLegacy
-  let descriptionSelector
-
-  if (legacyDescNode !== null) {
-    // We're on the legacy design of YouTube.
-    //
-    // The legacy design can be manually enabled by either:
-    // * Appending "&disable_polymer=1" to the URL of a video
-    // * Adding "f6=8" or "f6=9" to the "PREF" YouTube cookie
-    isLegacy = true
-    eventName = 'spfdone'
-    descriptionSelector = legacyDescSelector
-  } else {
-    // 'New' YouTube
-    eventName = 'yt-page-data-updated'
-    descriptionSelector = '#description yt-formatted-string'
-  }
+  const eventName = 'yt-page-data-updated'
+  const descriptionSelector = '#description yt-formatted-string'
 
   document.addEventListener(eventName, () => {
     log('Event called:', eventName)
@@ -58,12 +42,6 @@
     }
     removeYoutubeTracking(descriptionNode)
   })
-
-  if (isLegacy) {
-    // On legacy YouTube, the spfdone event isn't called after the page
-    // has rendered for the first time, so we manually trigger it.
-    document.dispatchEvent(new Event(eventName))
-  }
 
   function removeYoutubeTracking (descriptionNode) {
     const descLinks = descriptionNode.getElementsByTagName('a')
