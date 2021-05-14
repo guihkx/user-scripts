@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name YouTube URL Tracker Remover
 // @description Fixes user-tracking links in the description of YouTube videos
-// @version 1.1.0
+// @version 1.1.1
 // @author guihkx
 // @match https://*.youtube.com/*
 // @license MIT; https://opensource.org/licenses/MIT
@@ -18,6 +18,9 @@
 /**
  * Changelog:
  *
+ * @version 1.1.1:
+ * - Fix wrong selector
+ *
  * @version 1.1.0:
  * - Remove support for legacy YouTube (Polymer)
  *
@@ -29,7 +32,7 @@
   'use strict'
 
   const eventName = 'yt-page-data-updated'
-  const descriptionSelector = '#description yt-formatted-string'
+  const descriptionSelector = '#description > yt-formatted-string'
 
   document.addEventListener(eventName, () => {
     log('Event called:', eventName)
