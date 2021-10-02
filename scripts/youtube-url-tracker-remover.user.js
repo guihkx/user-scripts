@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name YouTube URL Tracker Remover
 // @description Fixes user-tracking links in the description of YouTube videos
-// @version 1.1.1
+// @version 1.1.2
 // @author guihkx
 // @match https://*.youtube.com/*
 // @license MIT; https://opensource.org/licenses/MIT
-// @run-at document-idle
+// @run-at document-start
 // @noframes
 // @namespace https://github.com/guihkx
 // @icon https://s.ytimg.com/yts/img/favicon_48-vflVjB_Qk.png
@@ -17,6 +17,9 @@
 
 /**
  * Changelog:
+ *
+ * @version 1.1.2
+ * - Fix script sometimes not injecting on Firefox with Violentmonkey
  *
  * @version 1.1.1:
  * - Fix wrong selector
