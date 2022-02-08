@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name ProtonMail Signature Remover
 // @description Automatically removes email signature for free users of ProtonMail
-// @version 2.0.0
+// @version 2.0.1
 // @author guihkx
 // @match https://mail.protonmail.com/*
 // @run-at document-idle
@@ -16,6 +16,10 @@
 
 /**
  * Changelog:
+ *
+ * @version 2.0.1
+ * - Fixed signature not being removed in the HTML composer ("rich text editor").
+ * - Added logging for when a signature is found and removed.
  *
  * @version 2.0.0
  * - Huge code rewrite
@@ -92,7 +96,7 @@
     const textSignature = /\n\n^Sent with ProtonMail Secure Email\.$/m
 
     // Monitors the textarea containing the text-based email body.
-    // Runs at every 100ms and stops once the textarea value's is not empty.
+    // Runs at every 100ms and stops once the textarea's value is not empty.
     const id = setInterval(() => {
       if (textareaEmailBody.value === '') {
         return
@@ -104,6 +108,7 @@
       clearInterval(id)
 
       textareaEmailBody.value = textareaEmailBody.value.replace(textSignature, '')
+      log('Signature successfully removed from text-only email.')
 
       // Move the text cursor back to the beginning of the textarea.
       textareaEmailBody.setSelectionRange(0, 0)
@@ -144,12 +149,12 @@
         if (addedNode.nodeType !== 1) {
           continue
         }
-        if (!addedNode.classList.contains('protonmail_signature_block')) {
+        const signatureNode = addedNode.querySelector('div.protonmail_signature_block')
+
+        if (!signatureNode) {
           continue
         }
         observer.disconnect()
-        // We already found our signature node, but we need to store it for removal later.
-        const signatureNode = addedNode
 
         // The signature block consists of 3 main nodes:
         //
@@ -176,6 +181,7 @@
         }
         // Finally, remove the signature node itself.
         signatureNode.remove()
+        log('Signature successfully removed from HTML email.')
         return
       }
     }
