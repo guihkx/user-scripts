@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name ProtonMail Signature Remover
 // @description Automatically removes email signature for free users of ProtonMail
-// @version 2.0.1
+// @version 2.0.2
 // @author guihkx
 // @match https://mail.protonmail.com/*
 // @run-at document-idle
@@ -16,6 +16,10 @@
 
 /**
  * Changelog:
+ *
+  * @version 2.0.2
+ * - Updated a bunch of class names, so now the script should work again.
+ * - Fixed signature detection in the text-only editor.
  *
  * @version 2.0.1
  * - Fixed signature not being removed in the HTML composer ("rich text editor").
@@ -57,7 +61,7 @@
           continue
         }
         // Determine if this is a text-only email.
-        const textareaEmailBody = addedNode.querySelector('textarea[data-testid="squire-textarea"]')
+        const textareaEmailBody = addedNode.querySelector('textarea[data-testid="editor-textarea"]')
 
         if (textareaEmailBody !== null) {
           log('A text-only email composer has been rendered.')
@@ -69,23 +73,29 @@
           return
         }
         // This is a HTML-based email.
-        const composerFrame = addedNode.querySelector('iframe.squireIframe')
+        const composerFrame = addedNode.querySelector('iframe.flex-item-fluid')
 
         if (composerFrame === null) {
           continue
         }
-        log('A HTML email composer has been rendered.')
+        composerFrame.addEventListener('load', () => {
+          log('A HTML email composer has been rendered.')
 
-        // In my tests, this frame's readyState will be set to 'uninitialized' on Firefox.
-        // In Chromium-based browsers, it's immediately set to 'complete'.
-        if (composerFrame.contentDocument.readyState === 'complete') {
-          setupHTMLComposerObserver(composerFrame)
-          return
-        }
-        log('composerFrame\'s readyState is not \'complete\' yet. Listening to DOMContentLoaded.')
+          const roosterEditor = composerFrame.contentDocument.getElementById('rooster-editor')
 
-        composerFrame.contentWindow.addEventListener('DOMContentLoaded', () => {
-          setupHTMLComposerObserver(composerFrame)
+          if (!roosterEditor) {
+            log('Fatal: `rooster-editor` was not found.')
+            return
+          }
+          const signatureNode = roosterEditor.querySelector('div.protonmail_signature_block')
+
+          if (signatureNode) {
+            // Signature node has been already rendered, remove it directly.
+            removeHTMLSignature(signatureNode)
+          } else {
+            // Signature node hasn't been rendered yet, so monitor it.
+            setupHTMLComposerObserver(roosterEditor)
+          }
         })
         return
       }
@@ -93,7 +103,7 @@
   }
 
   function removeTextSignature (textareaEmailBody) {
-    const textSignature = /\n\n^Sent with ProtonMail Secure Email\.$/m
+    const textSignature = /\n\n^Sent with ProtonMail secure email\.$/m
 
     // Monitors the textarea containing the text-based email body.
     // Runs at every 100ms and stops once the textarea's value is not empty.
@@ -115,76 +125,57 @@
     }, 100)
   }
 
-  function setupHTMLComposerObserver (composerFrame) {
-    const htmlComposerMonitor = new MutationObserver(observeHTMLComposerBody)
-    htmlComposerMonitor.observe(composerFrame.contentDocument.body, {
+  function setupHTMLComposerObserver (roosterEditor) {
+    const htmlComposerMonitor = new MutationObserver(detectHTMLSignatureNode)
+    htmlComposerMonitor.observe(roosterEditor, {
       childList: true
     })
   }
 
-  function observeHTMLComposerBody (mutations, observer) {
+  function detectHTMLSignatureNode (mutations, observer) {
     for (const mutation of mutations) {
       for (const addedNode of mutation.addedNodes) {
         if (addedNode.nodeType !== 1) {
           continue
         }
-        if (addedNode.id !== 'squire') {
+        if (!addedNode.classList.contains('protonmail_signature_block')) {
           continue
         }
-        // We found our frame, no need to keep observing.
+        // Found the signature node, stop observing and remove it.
         observer.disconnect()
-
-        const emailBodyMonitor = new MutationObserver(removeHTMLSignature)
-        emailBodyMonitor.observe(addedNode, {
-          childList: true
-        })
+        removeHTMLSignature(addedNode)
         return
       }
     }
   }
 
-  function removeHTMLSignature (mutations, observer) {
-    for (const mutation of mutations) {
-      for (const addedNode of mutation.addedNodes) {
-        if (addedNode.nodeType !== 1) {
-          continue
-        }
-        const signatureNode = addedNode.querySelector('div.protonmail_signature_block')
+  function removeHTMLSignature (signatureNode) {
+    // The signature block consists of 3 main nodes:
+    //
+    // <div><br></div>
+    // <div><br></div>
+    // <div class="protonmail_signature_block">
+    //  <div class="protonmail_signature_block-user protonmail_signature_block-empty"></div>
+    //  <div class="protonmail_signature_block-proton">Sent with <a href="https://protonmail.com/" target="_blank">ProtonMail</a> Secure Email.</div>
+    // </div>
+    //
+    // The following loop removes the first two blank lines preceding the ProtonMail signature node itself.
+    for (let i = 0; i < 2; i++) {
+      const prevSiblingNode = signatureNode.previousElementSibling
 
-        if (!signatureNode) {
-          continue
-        }
-        observer.disconnect()
-
-        // The signature block consists of 3 main nodes:
-        //
-        // <div><br></div>
-        // <div><br></div>
-        // <div class="protonmail_signature_block">
-        //  <div class="protonmail_signature_block-user protonmail_signature_block-empty"></div>
-        //  <div class="protonmail_signature_block-proton">Sent with <a href="https://protonmail.com/" target="_blank">ProtonMail</a> Secure Email.</div>
-        // </div>
-        //
-        // The following loop removes the first two blank lines preceding the ProtonMail signature node itself.
-        for (let i = 0; i < 2; i++) {
-          const prevSiblingNode = signatureNode.previousElementSibling
-
-          if (prevSiblingNode === null || prevSiblingNode.tagName !== 'DIV') {
-            break
-          }
-          const blankLine = prevSiblingNode.firstElementChild
-
-          if (blankLine === null || blankLine.tagName !== 'BR') {
-            break
-          }
-          prevSiblingNode.remove()
-        }
-        // Finally, remove the signature node itself.
-        signatureNode.remove()
-        log('Signature successfully removed from HTML email.')
-        return
+      if (prevSiblingNode === null || prevSiblingNode.tagName !== 'DIV') {
+        break
       }
+      const blankLine = prevSiblingNode.firstElementChild
+
+      if (blankLine === null || blankLine.tagName !== 'BR') {
+        break
+      }
+      prevSiblingNode.remove()
     }
+    // Finally, remove the signature node itself.
+    signatureNode.remove()
+    log('Signature successfully removed from HTML email.')
   }
 
   function log () {
