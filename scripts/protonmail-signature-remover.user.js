@@ -1,13 +1,14 @@
 // ==UserScript==
-// @name ProtonMail Signature Remover
-// @description Automatically removes email signature for free users of ProtonMail
-// @version 2.0.2
+// @name Proton Mail Signature Remover
+// @description Automatically removes email signature for free users of Proton Mail
+// @version 2.0.3
 // @author guihkx
 // @match https://mail.protonmail.com/*
+// @match https://mail.proton.me/*
 // @run-at document-idle
 // @license MIT; https://opensource.org/licenses/MIT
 // @namespace https://github.com/guihkx
-// @icon https://mail.protonmail.com/assets/coast-228x228.png
+// @icon https://mail.proton.me/assets/favicon-48x48.png
 // @downloadURL https://raw.githubusercontent.com/guihkx/user-scripts/master/scripts/protonmail-signature-remover.user.js
 // @updateURL https://raw.githubusercontent.com/guihkx/user-scripts/master/scripts/protonmail-signature-remover.user.js
 // @homepageURL https://github.com/guihkx/user-scripts
@@ -17,7 +18,13 @@
 /**
  * Changelog:
  *
-  * @version 2.0.2
+ * @version 2.0.3
+ * - Fixed signature in text-mode editor, again (why do they keep changing it?)
+ * - Added support for their new domain (mail.proton.me)
+ * - Updated @icon metadata
+ * - Replaced 'ProtonMail' by 'Proton Mail'
+ *
+ * @version 2.0.2
  * - Updated a bunch of class names, so now the script should work again.
  * - Fixed signature detection in the text-only editor.
  *
@@ -36,10 +43,9 @@
  */
 
 ;(() => {
-  let composerContainer
-
+  const log = console.log.bind(console, '[Proton Mail Signature Remover]')
   const id = setInterval(() => {
-    composerContainer = document.querySelector('div.composer-container')
+    const composerContainer = document.querySelector('div.composer-container')
 
     if (composerContainer === null) {
       return
@@ -103,7 +109,7 @@
   }
 
   function removeTextSignature (textareaEmailBody) {
-    const textSignature = /\n\n^Sent with ProtonMail secure email\.$/m
+    const textSignature = /\n\n^Sent with Proton Mail secure email\.$/m
 
     // Monitors the textarea containing the text-based email body.
     // Runs at every 100ms and stops once the textarea's value is not empty.
@@ -159,7 +165,7 @@
     //  <div class="protonmail_signature_block-proton">Sent with <a href="https://protonmail.com/" target="_blank">ProtonMail</a> Secure Email.</div>
     // </div>
     //
-    // The following loop removes the first two blank lines preceding the ProtonMail signature node itself.
+    // The following loop removes the first two blank lines preceding the Proton Mail signature node itself.
     for (let i = 0; i < 2; i++) {
       const prevSiblingNode = signatureNode.previousElementSibling
 
@@ -176,9 +182,5 @@
     // Finally, remove the signature node itself.
     signatureNode.remove()
     log('Signature successfully removed from HTML email.')
-  }
-
-  function log () {
-    console.log('[ProtonMail Signature Remover]', ...arguments)
   }
 })()

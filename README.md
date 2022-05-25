@@ -19,9 +19,9 @@ Then, just click to install any of these user-scripts:
 
 **Description:** Adds game ratings from [ProtonDB](https://www.protondb.com/) to the [Steam Store](https://store.steampowered.com/).
 
-### [🖋️ ProtonMail Signature Remover](https://raw.githubusercontent.com/guihkx/user-scripts/master/scripts/protonmail-signature-remover.user.js)
+### [🖋️ Proton Mail Signature Remover](https://raw.githubusercontent.com/guihkx/user-scripts/master/scripts/protonmail-signature-remover.user.js)
 
-**Description:** Automatically removes email signature for free users of ProtonMail. ("`Sent with ProtonMail Secure Email`")
+**Description:** Automatically removes email signature for free users of Proton Mail. ("`Sent with Proton Mail secure email`")
 
 ### [🎮 Steam Trading Cards Link Replacer](https://raw.githubusercontent.com/guihkx/user-scripts/master/scripts/steam-trading-cards-link-replacer.user.js)
 
