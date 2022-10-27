@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Proton Mail Signature Remover
 // @description Automatically removes email signature for free users of Proton Mail
-// @version 2.0.3
+// @version 2.0.4
 // @author guihkx
 // @match https://mail.protonmail.com/*
 // @match https://mail.proton.me/*
@@ -13,10 +13,15 @@
 // @updateURL https://raw.githubusercontent.com/guihkx/user-scripts/master/scripts/protonmail-signature-remover.user.js
 // @homepageURL https://github.com/guihkx/user-scripts
 // @supportURL https://github.com/guihkx/user-scripts/issues
+// @noframes
 // ==/UserScript==
 
 /**
  * Changelog:
+ *
+ * @version 2.0.4
+ * - Fix compatibility with Proton Mail v5.0.10.
+ * - Prevent script from running twice due to nested frames.
  *
  * @version 2.0.3
  * - Fixed signature in text-mode editor, again (why do they keep changing it?)
@@ -44,8 +49,11 @@
 
 ;(() => {
   const log = console.log.bind(console, '[Proton Mail Signature Remover]')
+
+  log('Waiting for the composer container...')
+
   const id = setInterval(() => {
-    const composerContainer = document.querySelector('div.composer-container')
+    const composerContainer = document.querySelector('div.app-root > div:not([class]):last-child')
 
     if (composerContainer === null) {
       return
