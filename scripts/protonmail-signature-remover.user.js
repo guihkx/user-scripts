@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name Proton Mail Signature Remover
 // @description Automatically removes email signature for free users of Proton Mail
-// @version 2.0.4
+// @version 2.0.5
 // @author guihkx
 // @match https://mail.protonmail.com/*
 // @match https://mail.proton.me/*
 // @run-at document-idle
 // @license MIT; https://opensource.org/licenses/MIT
 // @namespace https://github.com/guihkx
-// @icon https://mail.proton.me/assets/favicon-48x48.png
+// @icon https://mail.proton.me/assets/favicon.ico
 // @downloadURL https://raw.githubusercontent.com/guihkx/user-scripts/master/scripts/protonmail-signature-remover.user.js
 // @updateURL https://raw.githubusercontent.com/guihkx/user-scripts/master/scripts/protonmail-signature-remover.user.js
 // @homepageURL https://github.com/guihkx/user-scripts
@@ -18,6 +18,9 @@
 
 /**
  * Changelog:
+ *
+ * @version 2.0.5
+ * - Fix script icon.
  *
  * @version 2.0.4
  * - Fix compatibility with Proton Mail v5.0.10.
