@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name YouTube URL Tracker Remover
 // @description Fixes user-tracking links in the description of YouTube videos
-// @version 1.1.2
+// @version 1.2.0
 // @author guihkx
 // @match https://*.youtube.com/*
 // @license MIT; https://opensource.org/licenses/MIT
@@ -17,6 +17,11 @@
 
 /**
  * Changelog:
+ *
+ * @version 1.2.0
+ * - Fix compatibility issues with latest YouTube changes
+ * - Add support for YouTube Shorts
+ * - Major code refactor
  *
  * @version 1.1.2
  * - Fix script sometimes not injecting on Firefox with Violentmonkey
@@ -34,59 +39,94 @@
 ;(() => {
   'use strict'
 
-  const eventName = 'yt-page-data-updated'
-  const descriptionSelector = '#description > yt-formatted-string'
+  const log = console.log.bind(console, '[YouTube URL Tracker Remover]')
 
-  document.addEventListener(eventName, () => {
-    log('Event called:', eventName)
+  const ytEvents = [
+    // Triggered when the page is updated somehow, e.g. by clicking on another video.
+    'yt-page-data-updated',
+    // Triggered when the 'Show less' text under the description is clicked.
+    'yt-text-inline-expander-collapse-clicked',
+    // Triggered when the 'Show more' text under the description is clicked.
+    'yt-text-inline-expander-expand-clicked'
+  ]
 
-    const descriptionNode = document.querySelector(descriptionSelector)
+  const ytShortsEvents = [
+    // Triggered when you open the description box on YouTube Shorts.
+    'yt-popup-opened'
+  ];
 
-    if (descriptionNode === null) {
-      log('NULL description node. Not on a video page?')
-      return
-    }
-    removeYoutubeTracking(descriptionNode)
+  [...ytEvents, ...ytShortsEvents].forEach(event => {
+    document.addEventListener(event, async e => {
+      const isRegularVideo = window.location.pathname === '/watch'
+      const isShorts = window.location.pathname.startsWith('/shorts/')
+
+      if ((isRegularVideo && ytShortsEvents.includes(e.type)) || (isShorts && ytEvents.includes(e.type))) {
+        log(`YouTube event triggered: ${e.type}. Ignoring it because it's not useful on this page.`)
+        return
+      }
+      try {
+        const selector = isRegularVideo ? '#description-inline-expander a' : '#description a'
+        removeYoutubeTracking(await querySelectorAllLazy(selector))
+      } catch (error) {
+        log('Error: Unable to find links in the video description.\n' +
+            'Underlying error: ' + error + '\n' +
+            'Possible reasons:\n' +
+            '- There are currently no links in the video description.\n' +
+            '- The script is broken (please open a bug report).')
+      }
+    })
   })
 
-  function removeYoutubeTracking (descriptionNode) {
-    const descLinks = descriptionNode.getElementsByTagName('a')
+  function querySelectorAllLazy (selector, intervalMs = 500, maxTries = 6) {
+    return new Promise((resolve, reject) => {
+      let tried = 1
+      const id = setInterval(() => {
+        if (tried > maxTries) {
+          clearInterval(id)
+          reject(new Error(`The maximum amount of tries (${maxTries}) was exceeded.`))
+          return
+        }
+        const elements = document.querySelectorAll(selector)
+        if (elements.length > 0) {
+          clearInterval(id)
+          resolve(elements)
+          return
+        }
+        tried++
+      }, intervalMs)
+    })
+  }
 
-    for (const aTag of descLinks) {
-      const rawUrl = aTag.href
-
+  function removeYoutubeTracking (links) {
+    let cleanedUpLinks = 0
+    for (const link of links) {
       // Ignore timestamps
-      if (+aTag.textContent[0] >= 0) {
+      if (+link.textContent[0] >= 0) {
         continue
       }
       // Ignore hashtags
-      if (aTag.textContent[0] === '#') {
+      if (link.textContent[0] === '#') {
+        continue
+      }
+      // Ignore mentions
+      if (link.textContent[0] === '@') {
         continue
       }
       // Ignore URLs within the youtube.com domain
-      if (aTag.pathname !== '/redirect') {
-        aTag.textContent = rawUrl
+      if (link.pathname !== '/redirect') {
         continue
       }
-      const actualUrl = getQueryString('q', aTag)
+      const actualUrl = new URLSearchParams(link.search).get('q')
 
       if (actualUrl === null) {
-        log('Unable to extract URL from /redirect: ', aTag)
+        log('Unable to extract URL from /redirect:', link)
         continue
       }
-      aTag.href = actualUrl
-      aTag.textContent = actualUrl
+      link.href = actualUrl
+      cleanedUpLinks++
     }
-  }
-
-  function getQueryString (name, aTag) {
-    const qsRegEx = new RegExp(`[?&]${name}=([^&#]*)`)
-    const matches = aTag.search.match(qsRegEx)
-
-    return matches === null ? null : decodeURIComponent(matches[1])
-  }
-
-  function log () {
-    console.log('[YouTube URL Tracker Remover]', ...arguments)
+    if (cleanedUpLinks > 0) {
+      log(`Cleaned up ${cleanedUpLinks} links in the video description.`)
+    }
   }
 })()
