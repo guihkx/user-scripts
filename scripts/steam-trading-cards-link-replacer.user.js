@@ -17,7 +17,7 @@
 /**
  * Changelog:
  *
- * @version 1.0.0:
+ * v1.0.0 (2020-04-28):
  * - First release
  */
 

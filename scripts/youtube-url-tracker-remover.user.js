@@ -18,21 +18,21 @@
 /**
  * Changelog:
  *
- * @version 1.2.0
+ * v1.2.0 (2022-11-27):
  * - Fix compatibility issues with latest YouTube changes
  * - Add support for YouTube Shorts
  * - Major code refactor
  *
- * @version 1.1.2
+ * v1.1.2 (2021-10-02):
  * - Fix script sometimes not injecting on Firefox with Violentmonkey
  *
- * @version 1.1.1:
+ * v1.1.1 (2021-05-14):
  * - Fix wrong selector
  *
- * @version 1.1.0:
+ * v1.1.0 (2021-05-04):
  * - Remove support for legacy YouTube (Polymer)
  *
- * @version 1.0.0:
+ * v1.0.0 (2020-04-28):
  * - First release
  */
 

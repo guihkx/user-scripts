@@ -19,34 +19,34 @@
 /**
  * Changelog:
  *
- * @version 2.0.5
+ * v2.0.5 (2022-10-27):
  * - Fix script icon.
  *
- * @version 2.0.4
+ * v2.0.4 (2022-10-27):
  * - Fix compatibility with Proton Mail v5.0.10.
  * - Prevent script from running twice due to nested frames.
  *
- * @version 2.0.3
+ * v2.0.3 (2022-05-25):
  * - Fixed signature in text-mode editor, again (why do they keep changing it?)
  * - Added support for their new domain (mail.proton.me)
  * - Updated @icon metadata
  * - Replaced 'ProtonMail' by 'Proton Mail'
  *
- * @version 2.0.2
+ * v2.0.2 (2022-04-19):
  * - Updated a bunch of class names, so now the script should work again.
  * - Fixed signature detection in the text-only editor.
  *
- * @version 2.0.1
+ * v2.0.1 (2022-02-08):
  * - Fixed signature not being removed in the HTML composer ("rich text editor").
  * - Added logging for when a signature is found and removed.
  *
- * @version 2.0.0
+ * v2.0.0 (2021-10-03):
  * - Huge code rewrite
  * - Remove support for old.protonmail.com (Sorry!)
  * - Now removes the signature from both HTML and text-based emails (previously it could only do HTML-based ones)
  * - Updated script icon
  *
- * @version 1.0.0:
+ * v1.0.0 (2020-04-28):
  * - First release
  */
 
