@@ -3,7 +3,7 @@
   "license": "MIT",
   "author": "guihkx",
   "devDependencies": {
-    "standard": "17.0.0"
+    "standard": "17.1.0"
   },
   "scripts": {
     "standard:check": "standard --verbose scripts/*.user.js",
