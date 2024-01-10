@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Proton Mail Signature Remover
 // @description Automatically removes email signature for free users of Proton Mail
-// @version 2.0.6
+// @version 2.0.7
 // @author guihkx
 // @match https://mail.protonmail.com/*
 // @match https://mail.proton.me/*
@@ -18,6 +18,9 @@
 
 /**
  * Changelog:
+ *
+ * v2.0.7 (2024-01-09):
+ * - Remove debug statement.
  *
  * v2.0.6 (2024-01-09):
  * - Update selector for the HTML composer.
@@ -156,7 +159,6 @@
   function detectHTMLSignatureNode (mutations, observer) {
     for (const mutation of mutations) {
       for (const addedNode of mutation.addedNodes) {
-        log(addedNode, addedNode.constructor)
         if (!(addedNode instanceof addedNode.ownerDocument.defaultView.HTMLElement)) {
           continue
         }
