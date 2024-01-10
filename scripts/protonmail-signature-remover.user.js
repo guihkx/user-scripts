@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Proton Mail Signature Remover
 // @description Automatically removes email signature for free users of Proton Mail
-// @version 2.0.5
+// @version 2.0.6
 // @author guihkx
 // @match https://mail.protonmail.com/*
 // @match https://mail.proton.me/*
@@ -18,6 +18,10 @@
 
 /**
  * Changelog:
+ *
+ * v2.0.6 (2024-01-09):
+ * - Update selector for the HTML composer.
+ * - Use 'instanceof' where applicable.
  *
  * v2.0.5 (2022-10-27):
  * - Fix script icon.
@@ -74,7 +78,7 @@
   function observeComposerContainer (mutations) {
     for (const mutation of mutations) {
       for (const addedNode of mutation.addedNodes) {
-        if (addedNode.nodeType !== 1) {
+        if (!(addedNode instanceof HTMLElement)) {
           continue
         }
         // Determine if this is a text-only email.
@@ -90,7 +94,7 @@
           return
         }
         // This is a HTML-based email.
-        const composerFrame = addedNode.querySelector('iframe.flex-item-fluid')
+        const composerFrame = addedNode.querySelector('iframe[data-testid="rooster-iframe"]')
 
         if (composerFrame === null) {
           continue
@@ -152,7 +156,8 @@
   function detectHTMLSignatureNode (mutations, observer) {
     for (const mutation of mutations) {
       for (const addedNode of mutation.addedNodes) {
-        if (addedNode.nodeType !== 1) {
+        log(addedNode, addedNode.constructor)
+        if (!(addedNode instanceof addedNode.ownerDocument.defaultView.HTMLElement)) {
           continue
         }
         if (!addedNode.classList.contains('protonmail_signature_block')) {
@@ -180,12 +185,12 @@
     for (let i = 0; i < 2; i++) {
       const prevSiblingNode = signatureNode.previousElementSibling
 
-      if (prevSiblingNode === null || prevSiblingNode.tagName !== 'DIV') {
+      if (!(prevSiblingNode instanceof HTMLDivElement)) {
         break
       }
       const blankLine = prevSiblingNode.firstElementChild
 
-      if (blankLine === null || blankLine.tagName !== 'BR') {
+      if (!(blankLine instanceof HTMLBRElement)) {
         break
       }
       prevSiblingNode.remove()
