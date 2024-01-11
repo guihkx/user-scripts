@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Proton Mail Signature Remover
 // @description Automatically removes email signature for free users of Proton Mail
-// @version 2.0.7
+// @version 2.0.8
 // @author guihkx
 // @match https://mail.protonmail.com/*
 // @match https://mail.proton.me/*
@@ -18,6 +18,9 @@
 
 /**
  * Changelog:
+ *
+ * v2.0.8 (2024-01-11):
+ * - Avoid deleting the custom user signature.
  *
  * v2.0.7 (2024-01-09):
  * - Remove debug statement.
@@ -173,32 +176,81 @@
     }
   }
 
-  function removeHTMLSignature (signatureNode) {
-    // The signature block consists of 3 main nodes:
-    //
-    // <div><br></div>
-    // <div><br></div>
-    // <div class="protonmail_signature_block">
-    //  <div class="protonmail_signature_block-user protonmail_signature_block-empty"></div>
-    //  <div class="protonmail_signature_block-proton">Sent with <a href="https://protonmail.com/" target="_blank">ProtonMail</a> Secure Email.</div>
-    // </div>
-    //
-    // The following loop removes the first two blank lines preceding the Proton Mail signature node itself.
-    for (let i = 0; i < 2; i++) {
-      const prevSiblingNode = signatureNode.previousElementSibling
-
-      if (!(prevSiblingNode instanceof HTMLDivElement)) {
-        break
-      }
-      const blankLine = prevSiblingNode.firstElementChild
-
-      if (!(blankLine instanceof HTMLBRElement)) {
-        break
-      }
-      prevSiblingNode.remove()
+  function isBlankLine (node) {
+    if (!node) {
+      return false
     }
-    // Finally, remove the signature node itself.
-    signatureNode.remove()
+    if (!(node instanceof node.ownerDocument.defaultView.HTMLDivElement)) {
+      return false
+    }
+    if (!node.firstElementChild) {
+      return false
+    }
+    if (!(node.firstElementChild instanceof node.firstElementChild.ownerDocument.defaultView.HTMLBRElement)) {
+      return false
+    }
+    return true
+  }
+
+  function removeHTMLSignature (signatureNode) {
+    // Email composer structure with custom user signature:
+    //
+    // <div id="rooster-editor">
+    //   <div><br></div>
+    //   <div><br></div>
+    //   <div class="protonmail_signature_block">
+    //     <div class="protonmail_signature_block-user">
+    //       <div>Thanks,</div>
+    //       <div>Guilherme<br></div>
+    //     </div>
+    //     <div><br></div>
+    //     <div class="protonmail_signature_block-proton">
+    //       Sent with <a href="https://proton.me/">Proton Mail</a> secure email.
+    //     </div>
+    //    </div>
+    //  </div>
+
+    // Email composer structure without custom user signature:
+    //
+    // <div id="rooster-editor">
+    //   <div><br></div>
+    //   <div><br></div>
+    //   <div class="protonmail_signature_block">
+    //     <div class="protonmail_signature_block-user protonmail_signature_block-empty"></div>
+    //     <div class="protonmail_signature_block-proton">Sent with <a href="https://proton.me/">Proton Mail</a> secure email.</div>
+    //   </div>
+    // </div>
+    const protonSignature = signatureNode.querySelector('.protonmail_signature_block-proton')
+
+    if (!protonSignature) {
+      log('BUG: Unable to find Proton\'s HTML signature to remove.')
+      return
+    }
+    // Checks if there is a custom user signature.
+    const userSignature = signatureNode.querySelector('.protonmail_signature_block-user:not(.protonmail_signature_block-empty)')
+
+    if (!userSignature) {
+      // Since there is no custom user signature, we can remove two blank lines added above the Proton signature.
+      for (let i = 0; i < 2; i++) {
+        log(signatureNode.previousElementSibling)
+        if (isBlankLine(signatureNode.previousElementSibling)) {
+          signatureNode.previousElementSibling.remove()
+        }
+      }
+    }
+
+    // Remove a blank line added below the Proton signature.
+    if (isBlankLine(signatureNode.nextElementSibling)) {
+      signatureNode.nextElementSibling.remove()
+    }
+
+    // Remove a blank line below the custom user signature.
+    if (userSignature && isBlankLine(userSignature.nextElementSibling)) {
+      userSignature.nextElementSibling.remove()
+    }
+
+    // Finally, remove the Proton signature node itself.
+    protonSignature.remove()
     log('Signature successfully removed from HTML email.')
   }
 })()
