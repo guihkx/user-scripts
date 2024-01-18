@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name YouTube URL Tracker Remover
 // @description Fixes user-tracking links in the description of YouTube videos
-// @version 1.2.0
+// @version 1.2.1
 // @author guihkx
 // @match https://*.youtube.com/*
 // @license MIT; https://opensource.org/licenses/MIT
@@ -17,6 +17,9 @@
 
 /**
  * Changelog:
+ *
+ * v1.2.1 (2024-01-18):
+ * - Detect timestamps more accurately.
  *
  * v1.2.0 (2022-11-27):
  * - Fix compatibility issues with latest YouTube changes
@@ -101,7 +104,7 @@
     let cleanedUpLinks = 0
     for (const link of links) {
       // Ignore timestamps
-      if (+link.textContent[0] >= 0) {
+      if (Number.isInteger(link.textContent[0])) {
         continue
       }
       // Ignore hashtags
