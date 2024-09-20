@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Proton Mail Signature Remover
 // @description Automatically removes email signature for free users of Proton Mail
-// @version 2.0.8
+// @version 2.0.9
 // @author guihkx
 // @match https://mail.protonmail.com/*
 // @match https://mail.proton.me/*
@@ -18,6 +18,9 @@
 
 /**
  * Changelog:
+ *
+ * v2.0.9 (2024-09-20):
+ * - Fix compatibility with Proton Mail v5.0.47.8.
  *
  * v2.0.8 (2024-01-11):
  * - Avoid deleting the custom user signature.
@@ -82,31 +85,52 @@
   }, 500)
 
   function observeComposerContainer (mutations) {
+    let composerFound = false
+    let composerNode
     for (const mutation of mutations) {
       for (const addedNode of mutation.addedNodes) {
         if (!(addedNode instanceof HTMLElement)) {
           continue
         }
-        // Determine if this is a text-only email.
-        const textareaEmailBody = addedNode.querySelector('textarea[data-testid="editor-textarea"]')
-
-        if (textareaEmailBody !== null) {
-          log('A text-only email composer has been rendered.')
-          // Although at this point the text-only email composer has been rendered,
-          // the textarea that contains the email body will still be empty.
-          // As I couldn't figure out a proper way to determine when the textarea has been filled,
-          // this ugly, hacky approach keeps monitoring the textarea until its value is not empty anymore.
-          removeTextSignature(textareaEmailBody)
-          return
-        }
-        // This is a HTML-based email.
-        const composerFrame = addedNode.querySelector('iframe[data-testid="rooster-iframe"]')
-
-        if (composerFrame === null) {
+        if (!addedNode.classList.contains('composer')) {
+          log('Unexpected non-composer node:', addedNode)
           continue
         }
+        composerFound = true
+        composerNode = addedNode
+        break
+      }
+      if (composerFound) {
+        break
+      }
+    }
+    if (!composerFound) {
+      return
+    }
+    // Loop until the email composer is fully rendered...
+    const id = setInterval(() => {
+      // Determine if this is a plain-text email composer.
+      const textareaEmailBody = composerNode.querySelector('textarea[data-testid="editor-textarea"]')
+
+      if (textareaEmailBody !== null) {
+        // The is a pkain-text email composer.
+        log('A plain-text email composer has been rendered.')
+        // Although at this point the text-only email composer has been rendered,
+        // the textarea that contains the email body will still be empty.
+        // As I couldn't figure out a proper way to determine when the textarea has been filled,
+        // this ugly, hacky approach keeps monitoring the textarea until its value is not empty anymore.
+        removeTextSignature(textareaEmailBody)
+        clearInterval(id)
+        return
+      }
+      // Determine if this is rich-text email composer.
+      const composerFrame = composerNode.querySelector('iframe[data-testid="rooster-iframe"]')
+
+      if (composerFrame !== null) {
+        // The is a rich-text email composer.
+        clearInterval(id)
         composerFrame.addEventListener('load', () => {
-          log('A HTML email composer has been rendered.')
+          log('A rich-text email composer has been rendered.')
 
           const roosterEditor = composerFrame.contentDocument.getElementById('rooster-editor')
 
@@ -124,9 +148,9 @@
             setupHTMLComposerObserver(roosterEditor)
           }
         })
-        return
       }
-    }
+      // The composer is not ready, try again in 50ms...
+    }, 50)
   }
 
   function removeTextSignature (textareaEmailBody) {
@@ -232,7 +256,6 @@
     if (!userSignature) {
       // Since there is no custom user signature, we can remove two blank lines added above the Proton signature.
       for (let i = 0; i < 2; i++) {
-        log(signatureNode.previousElementSibling)
         if (isBlankLine(signatureNode.previousElementSibling)) {
           signatureNode.previousElementSibling.remove()
         }
