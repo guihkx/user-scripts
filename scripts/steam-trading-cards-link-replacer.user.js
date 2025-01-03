@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Steam Trading Cards Link Replacer
 // @description Replaces the "Steam Trading Cards" link in the Steam Store with a link to the actual list of trading cards in the Steam Market
-// @version 1.0.0
+// @version 1.0.1
 // @author guihkx
 // @match https://store.steampowered.com/app/*
 // @license MIT; https://opensource.org/licenses/MIT
@@ -16,6 +16,9 @@
 
 /**
  * Changelog:
+ *
+ * v1.0.1 (2025-01-03):
+ * - Fix element injection.
  *
  * v1.0.0 (2020-04-28):
  * - First release
@@ -32,8 +35,7 @@
     return
   }
   const appId = window.location.pathname.split('/')[2]
-  const tCardsLink =
-    tCardsSection.parentElement.parentElement.nextElementSibling
+  const tCardsLink = tCardsSection.parentElement.parentElement
 
   const marketUrl = new URL('https://steamcommunity.com/market/search')
   marketUrl.searchParams.set('appid', '753')
