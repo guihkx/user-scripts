@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Proton Mail Signature Remover
 // @description Automatically removes email signature for free users of Proton Mail
-// @version 2.0.9
+// @version 2.0.10
 // @author guihkx
 // @match https://mail.protonmail.com/*
 // @match https://mail.proton.me/*
@@ -18,6 +18,9 @@
 
 /**
  * Changelog:
+ *
+ * v2.0.10 (2025-01-03):
+ * - Replace the "onload()" event from the rich-text composer iframe by periodic setInterval() checks.
  *
  * v2.0.9 (2024-09-20):
  * - Fix compatibility with Proton Mail v5.0.47.8.
@@ -113,6 +116,7 @@
       const textareaEmailBody = composerNode.querySelector('textarea[data-testid="editor-textarea"]')
 
       if (textareaEmailBody !== null) {
+        clearInterval(id)
         // The is a pkain-text email composer.
         log('A plain-text email composer has been rendered.')
         // Although at this point the text-only email composer has been rendered,
@@ -120,7 +124,6 @@
         // As I couldn't figure out a proper way to determine when the textarea has been filled,
         // this ugly, hacky approach keeps monitoring the textarea until its value is not empty anymore.
         removeTextSignature(textareaEmailBody)
-        clearInterval(id)
         return
       }
       // Determine if this is rich-text email composer.
@@ -129,15 +132,15 @@
       if (composerFrame !== null) {
         // The is a rich-text email composer.
         clearInterval(id)
-        composerFrame.addEventListener('load', () => {
-          log('A rich-text email composer has been rendered.')
-
+        const id2 = setInterval(() => {
           const roosterEditor = composerFrame.contentDocument.getElementById('rooster-editor')
 
           if (!roosterEditor) {
-            log('Fatal: `rooster-editor` was not found.')
+            log('Rich-text email composer not ready yet...')
             return
           }
+          clearInterval(id2)
+          log('A rich-text email composer has been rendered.')
           const signatureNode = roosterEditor.querySelector('div.protonmail_signature_block')
 
           if (signatureNode) {
@@ -147,9 +150,10 @@
             // Signature node hasn't been rendered yet, so monitor it.
             setupHTMLComposerObserver(roosterEditor)
           }
-        })
+        // roosterEditor is not ready, try again in 50ms...
+        }, 50)
       }
-      // The composer is not ready, try again in 50ms...
+      // The composer frame is not ready, try again in 50ms...
     }, 50)
   }
 
